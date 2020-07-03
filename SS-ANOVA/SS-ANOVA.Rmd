@@ -1,5 +1,5 @@
 ---
-title: "Anova: how does it work and how to use it"
+title: "Anova: how does it work and how should I use it?"
 output: learnr::tutorial
 runtime: shiny_prerendered
 ---
@@ -7,6 +7,7 @@ runtime: shiny_prerendered
 ```{r setup, include=FALSE}
 library(learnr)
 library(mosaic)
+library(magrittr)
 caterpillers <- read.csv("../www/regression.csv")
 crop_growth  <- read.csv("../www/crop_growth.csv")
 knitr::opts_chunk$set(echo = FALSE)
@@ -83,7 +84,7 @@ The outputs from the `summary()` function are slightly different, as the
 `crop_growth_lm` has a categorical explantory variable. However, you'll notice
 that the overall format of the outputs from the `anova()` function is the same.
 
-As you can see from the output, ANOVA stands for **analysis of variance** yet
+The abbreviation **ANOVA** stands for **analysis of variance** yet
 the output table does not have anything described as a variance. Why?
 
 ```{r where_is_variance}
@@ -107,6 +108,44 @@ So, now you can understand where the variances are, you might be wondering
 
 We will show this interactively, with examples similar to your `caterpillers`
 and `crop_yield` datasets.
+
+## Variances with continuous explanatory variables
+Your R output from the `summary()` function of the `caterpillers_lm` results
+gave you the intercept and gradient of your fitted line. Plot your original
+raw data and the fitted line to remind you of what it looks like. **Hint** Use
+the `gf_point()` and `gf_lm()` functions you have already used:
+
+```{r lm_caterpillers, exercise=TRUE, exercise.completion = FALSE}
+
+```
+```{r lm_caterpillers-solution}
+gf_point(growth ~ tannin, data=caterpillers) %>% 
+  gf_lm()
+```
+
+Compare the intercept (where the fitted line crosses the vertical axis) and slope
+with the output from your earlier `summary()` function on this model. Note that
+the slope is negative as the observations decline from left to right.
+
+### How does `lm()` know where to put the fitted line?
+The `lm()` function uses the technique of **least squares**, i.e. it tries to
+minimise the sums of squares around your fitted line and the observations. There
+are three sets of SS that are calculated, which are then converted into the
+variances (Mean Sq) used in your ANOVA table:
+
+* SS explanatory variable (the bigger this is, the stronger the relationship
+between your response variable and explanatory variable)
+* SS error (variation in your observations caused by random noise or measurement errors)
+* SS total (Total variation in your data from all sources) SS explanatory + SS
+error = SS total.
+
+The following interactive chart allows you to visualise these different
+components.
+
+
+
+The S
+
 
 <!-- *Here's a simple exercise with an empty code chunk provided for entering the answer.* -->
 
