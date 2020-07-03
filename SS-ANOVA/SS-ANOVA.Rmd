@@ -1,0 +1,169 @@
+---
+title: "Anova: how does it work and how to use it"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(mosaic)
+caterpillers <- read.csv("../www/regression.csv")
+crop_growth  <- read.csv("../www/crop_growth.csv")
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## ANOVA: a common output from linear models
+
+### Introduction
+You have already used the `anova` command when you looked at the outputs from
+some of your earlier linear models. It can be used on linear models where the
+explanatory variable(s) are categorical or continuous, and can even be used to
+compare different linear models.  So, for example, you might have R code such
+as:
+
+`bacteria_lm1 <- lm(bacteria_growth ~ antibiotic_concentration, data=bacteria)`
+
+where your response is the continuous variable `bacteria_growth`, and your
+explanatory variable is the continuous variable `antibiotic_concentration`.
+You might create a more complicated model, including incubation temperature as
+a continuous explanatory variable:
+
+`bacteria_lm2 <- lm(bacteria_growth ~ antibiotic_concentration + temperature, data=bacteria)`
+
+Which is the better linear model, `bacteria_lm1` or the more complex one
+`bacteria_lm2`. You can easily see if there is a statistically significant
+difference between the models using the `anova` command:
+
+`anova(bacteria_lm1, bacteria_lm2)`
+
+which will print out an ANOVA table and p-value.
+
+```{r which_lm}
+question("If you performed an anova function on bacteria_lm1 and bacteria_lm2
+         and the p-value is greater than 0.05, which linear model is better for
+         your data?",
+         answer("bacteria_lm1", correct = TRUE, message = "Good. As there is
+                no statistically significant different, because p>0.05, you
+                should select the simpler linear model"),
+         answer("bacteria_lm2", message = "No. The p-value is greater than 0.05
+                which means that there is no significant difference in the
+                explanatory power of the two linear models. You should always
+                try and use the simpler of the models where possible"))
+```
+
+To refresh you memory of how R summarises the results of linear models, re-create
+the caterpiller growth and crop linear models you have already used. Remember that
+
+* The `caterpillers` data.frame contains two columns `tannin` and `growth`
+* The `crop_growth` data.frame contains two columns `soil` and `yield`
+
+Create the linear models again using `lm()` making sure you know which is your 
+response and explanatory variable in each case, use the `summary()` to show the
+detailed information about model parameters, and `anova()` for the ANOVA tables.
+The solution is provided if you get really stuck, but try it on your own first.
+
+```{r lm_models, exercise=TRUE}
+
+```
+```{r lm_models-solution}
+head(caterpillers) # Remind yourself of what the data looks like!
+caterpiller_lm <- lm(growth ~ tannin, data=caterpillers)
+summary(caterpiller_lm)
+anova(caterpiller_lm)
+
+head(crop_growth)
+crop_growth_lm <- lm(yield ~ soil, data=crop_growth)
+summary(crop_growth_lm)
+anova(crop_growth_lm)
+```
+
+The outputs from the `summary()` function are slightly different, as the
+`caterpillers_lm` has a continuous explanatory variable, whereas the 
+`crop_growth_lm` has a categorical explantory variable. However, you'll notice
+that the overall format of the outputs from the `anova()` function is the same.
+
+As you can see from the output, ANOVA stands for **analysis of variance** yet
+the output table does not have anything described as a variance. Why?
+
+```{r where_is_variance}
+question("Why is there no column headed 'variance' in the ANOVA table?",
+         answer("Variance and SE are calculated separately, but for simplicity
+                they are not displayed in the ANOVA output", message = "No. 
+                Remember that a variance is simply the 'average' or 'mean' of
+                the Sums of Squares. So the column headed 'Mean Sq' contains
+                the variances"),
+         answer("Sums of squares divided by the degrees of freedom are variances", 
+                correct = TRUE, message = "Good. Dividing by the degrees of 
+                freedom produces an average or 'mean sums of squares', shown as
+                'Mean Sq' in the table. A 'Mean Sq' is another name for a
+                variance"),
+         allow_retry = TRUE)
+```
+
+So, now you can understand where the variances are, you might be wondering 
+**why do we test the importance of explanatory variables by their variances?** or 
+**How does ANOVA work**
+
+We will show this interactively, with examples similar to your `caterpillers`
+and `crop_yield` datasets.
+
+<!-- *Here's a simple exercise with an empty code chunk provided for entering the answer.* -->
+
+<!-- Write the R code required to add two plus two: -->
+
+<!-- ```{r two-plus-two, exercise=TRUE} -->
+
+<!-- ``` -->
+
+<!-- ### Exercise with Code -->
+
+<!-- *Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.* -->
+
+<!-- Now write a function that adds any two numbers and then call it: -->
+
+<!-- ```{r add-function, exercise=TRUE, exercise.lines = 5} -->
+<!-- add <- function() { -->
+
+<!-- } -->
+<!-- ``` -->
+
+<!-- ## Topic 2 -->
+
+<!-- ### Exercise with Hint -->
+
+<!-- *Here's an exercise where the chunk is pre-evaulated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.* -->
+
+<!-- Modify the following code to limit the number of rows printed to 5: -->
+
+<!-- ```{r print-limit, exercise=TRUE, exercise.eval=TRUE} -->
+<!-- mtcars -->
+<!-- ``` -->
+
+<!-- ```{r print-limit-hint} -->
+<!-- head(mtcars) -->
+<!-- ``` -->
+
+<!-- ### Quiz -->
+
+<!-- *You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.* -->
+
+<!-- Some questions to verify that you understand the purposes of various base and recommended R packages: -->
+
+<!-- ```{r quiz} -->
+<!-- quiz( -->
+<!--   question("Which package contains functions for installing other R packages?", -->
+<!--     answer("base"), -->
+<!--     answer("tools"), -->
+<!--     answer("utils", correct = TRUE), -->
+<!--     answer("codetools") -->
+<!--   ), -->
+<!--   question("Which of the R packages listed below are used to create plots?", -->
+<!--     answer("lattice", correct = TRUE), -->
+<!--     answer("tools"), -->
+<!--     answer("stats"), -->
+<!--     answer("grid", correct = TRUE) -->
+<!--   ) -->
+<!-- ) -->
+<!-- ``` -->
+
