@@ -142,6 +142,85 @@ error = SS total.
 The following interactive chart allows you to visualise these different
 components.
 
+```{r, echo=FALSE}
+caterpillers_lm <- lm(growth ~ tannin, data=caterpillers)
+caterpillers_resid <- residuals(caterpillers_lm)
+caterpillers_fitted <- fitted(caterpillers_lm)
+
+
+fluidPage(
+    # Application title
+    titlePanel("Caterpiller data"),
+
+    # Sidebar with a slider input for number of bins 
+    sidebarLayout(
+        sidebarPanel(
+            radioButtons("SS_source", label = h3("Source of variation"),
+                         choices = list("SS explanatory variable" = 1, "SS error (unknown)" = 2, "SS total" = 3), 
+                         selected = 3),
+            hr(),
+            fluidRow(column(12, verbatimTextOutput("value")))
+        ),
+
+        # Show a plot of the generated distribution
+        mainPanel(
+           plotOutput("distPlot")
+        )
+    )
+)
+```
+
+```{r, context="server"}
+    p <- reactive({
+        if(input$SS_source == "3"){
+            linplot <- ggplot(aes(x = tannin, y = growth), data = caterpillers) +
+                geom_point() +
+                geom_hline(yintercept = mean(caterpillers$growth)) +
+                geom_segment(yend = mean(caterpillers$growth), xend = caterpillers$tannin, colour = "grey") +
+                ggtitle("SS total: differences from the mean of growth") +
+                theme_classic()
+            return(linplot)
+        } else if (input$SS_source == "2"){
+            linplot <- ggplot(aes(x = tannin, y = growth), data = caterpillers) +
+                geom_point() +
+                geom_smooth(method="lm", se=FALSE) +
+                geom_segment(yend = caterpillers_fitted, xend = caterpillers$tannin, colour="red") +
+                ggtitle("SS error: unknown variation around fitted line") +
+                theme_classic()
+            return(linplot)
+        } else {
+            linplot <- ggplot(aes(x = tannin, y = growth), data = caterpillers) +
+                geom_point() +
+                geom_hline(yintercept = mean(caterpillers$growth)) +
+                geom_smooth(method="lm", se = FALSE) +
+                geom_segment(y = caterpillers_fitted, yend = mean(caterpillers$growth), xend = caterpillers$tannin, colour="green") +
+                ggtitle("SS model = SS total - SS error: bigger lines are better") +
+                theme_classic()
+            return(linplot)
+        }
+    })
+    
+    ssvalue <- reactive({
+        if(input$SS_source == "3"){
+            sstotal <- round(sum((mean(caterpillers$growth) - caterpillers$growth)^2),2)
+            return(paste("SS total ", sstotal))
+        } else if(input$SS_source == "2"){
+            sserror <- round(sum((caterpillers_fitted - caterpillers$growth)^2),2)
+            return(paste("SSE error ", sserror))
+        } else {
+            sstotal <- round(sum((mean(caterpillers$growth) - caterpillers$growth)^2),2)
+            sserror <- round(sum((caterpillers_fitted - caterpillers$growth)^2),2)
+            ssmodel <- sstotal - sserror
+            return(paste("SS explanatory variable ", ssmodel))
+        }
+    })
+    
+    output$distPlot <- renderPlot({
+        p()
+    })
+    output$value <- renderText(ssvalue())
+
+```
 
 
 The S
