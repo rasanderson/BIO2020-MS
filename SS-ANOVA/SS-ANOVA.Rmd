@@ -152,7 +152,6 @@ fluidPage(
     # Application title
     titlePanel("Caterpiller data"),
 
-    # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
             radioButtons("SS_source", label = h3("Source of variation"),
@@ -286,7 +285,7 @@ fluidPage(
     # Application title
     titlePanel("Adjust noise and observations"),
 
-    # Sidebar with a slider input for number of bins 
+    # Sidebar with a slider input for number of bins
     sidebarLayout(
         sidebarPanel(
             sliderInput("noise",
@@ -315,7 +314,7 @@ fluidPage(
         a <- 11.7556
         b <- -1.2167
         sigma2 <- 4.4793
-        
+
         x <- seq(0, 9, 9/n)
         eps <- rnorm(n, mean=0, sd=sqrt(input$noise))
         y <- a + b*x + eps
@@ -323,12 +322,12 @@ fluidPage(
     })
 
     output$myplot <- renderPlot({
-        
-        gf_point(growth ~ tannin, data=pltdata()) %>% 
-            gf_lm() %>% 
+
+        gf_point(growth ~ tannin, data=pltdata()) %>%
+            gf_lm() %>%
             gf_lims(x=c(0,9), y=c(0,15))
     })
-    
+
     output$anovatable <- renderPrint({
         anova(lm(growth ~ tannin, data=pltdata()))
     })
@@ -339,10 +338,10 @@ fluidPage(
 question("Having adjusted the sliders and looked at the plot and anova table
          output, which of the following statements is true?",
          answer("Only the number of observations affects the F-value.",
-                message = "No. The F-value is affected by both the number of 
+                message = "No. The F-value is affected by both the number of
                 observations and the amount of variation (noise) in the data."),
          answer("Only the variation in the observation data affects the F-value.",
-                message = "No. The F-value is affected by both the number of 
+                message = "No. The F-value is affected by both the number of
                 observations and the amount of variation (noise) in the data."),
          answer("Both the amount of noise and the number of observations affect
                 the F-value", correct = TRUE, message = "Good. The less variation
@@ -368,6 +367,128 @@ gf_point(growth ~ tannin, data=caterpillers) %>%
   gf_theme(theme_classic())
 ```
 
+## Variances with categorical explanatory variables
+We'll use the same approach to understand what is going on with categorical data
+using the `crop_growth` dataset that showed the change in growth on three different
+soil types. You will recall that these data could be summarised easily via the
+`gf_boxplot()` function, and the the `lm()` linear model indicated that soil type
+had a significant effect on yield. The boxplot and Anova table are shown below:
+
+```{r crop_yield_info}
+gf_boxplot(yield ~ soil, data=crop_growth)
+crop_growth_lm <- lm(yield ~ soil, data = crop_growth)
+anova(crop_growth_lm)
+```
+Again there are sums of squares for soil, a 'Residual' sums of squares (noise in
+the data). Not shown in the table is the Total Sums of squares. The process of
+calculation is identical to that for the previous `caterpiller` example with
+continuous explanatory variable, i.e.
+
+$$\mbox{SS soil} = \mbox{SS total} - \mbox{SS error}$$
+but it may be less obvious how the various components are calculated, especially
+$\mbox{SS total}$ and $\mbox{SS error}$. As before, we'll use an interactive to
+show three components. Note that as the explanatory variable is categorical, so
+that you can see the individual observations, they are simply shown in the order
 
 
 
+<!-- in the original dataset (i.e. row number): -->
+
+```{r, echo=FALSE}
+crop_growth_lm <- lm(yield ~ soil, data=crop_growth)
+crop_growth_resid <- residuals(crop_growth_lm)
+crop_growth_fitted <- fitted(crop_growth_lm)
+
+fluidPage(
+    # Application title
+    titlePanel("Crop growth data"),
+
+    sidebarLayout(
+        sidebarPanel(
+            radioButtons("SS_source2", label = h3("Source of variation"),
+                         choices = list("SS explanatory variable (soil)" = 1, "SS error (unknown)" = 2, "SS total" = 3),
+                         selected = 3),
+            hr(),
+            fluidRow(column(12, verbatimTextOutput("value2")))
+        ),
+
+        # Show a plot of the generated distribution
+        mainPanel(
+           plotOutput("distPlot2")
+        )
+    )
+)
+```
+
+```{r, context="server"}
+    p <- reactive({
+        if(input$SS_source2 == "3"){
+            linplot <- ggplot(aes(x = 1:30, y = yield, colour = soil), data = crop_growth) +
+                geom_point() +
+                geom_hline(yintercept = mean(crop_growth$yield), linetype = "dashed") +
+                geom_segment(yend = mean(crop_growth$yield), xend = 1:30) +
+                ggtitle("SS total: differences from the mean of yield") +
+                ylab("yield") +
+                xlab("observation number") +
+                theme_classic()
+            return(linplot)
+        } else if (input$SS_source2 == "2"){
+            linplot <- ggplot(aes(x = 1:30, y = crop_growth$yield, colour = soil), data = crop_growth) +
+                geom_point() +
+                geom_segment(x =  1:10,  y=crop_growth$yield[1:10], yend = mean(crop_growth$yield[1:10]), xend =  1:10, data=crop_growth[1:10,]) +
+                geom_segment(x = 11:20, y=crop_growth$yield[11:20], yend = mean(crop_growth$yield[11:20]), xend = 11:20, data=crop_growth[11:20,]) +
+                geom_segment(x = 21:30, y=crop_growth$yield[21:30], yend = mean(crop_growth$yield[21:30]), xend = 21:30, data=crop_growth[21:30,]) +
+                geom_segment(x = 1, y=mean(crop_growth$yield[1:10]), yend=mean(crop_growth$yield[1:10]), xend = 10, data=crop_growth[1:10,]) +
+                geom_segment(x = 11, y=mean(crop_growth$yield[11:20]), yend=mean(crop_growth$yield[11:20]), xend = 20, data=crop_growth[11:20,]) +
+                geom_segment(x = 21, y=mean(crop_growth$yield[21:30]), yend=mean(crop_growth$yield[21:30]), xend = 30, data=crop_growth[21:30,]) +
+                ylab("yield") +
+                xlab("observation number") +
+                ggtitle("SS error: unknown variation around fitted line (mean for each soil type) ") +
+                theme_classic()
+            return(linplot)
+        } else {
+            linplot <- ggplot(aes(x = 1:30, y = yield, colour = soil), data = crop_growth) +
+                geom_point() +
+                geom_hline(yintercept = mean(crop_growth$yield), linetype = "dashed") +
+                geom_segment(x = 1, y=mean(crop_growth$yield[1:10]), yend=mean(crop_growth$yield[1:10]), xend = 10, data=crop_growth[1:10,]) +
+                geom_segment(x = 11, y=mean(crop_growth$yield[11:20]), yend=mean(crop_growth$yield[11:20]), xend = 20, data=crop_growth[11:20,]) +
+                geom_segment(x = 21, y=mean(crop_growth$yield[21:30]), yend=mean(crop_growth$yield[21:30]), xend = 30, data=crop_growth[21:30,]) +
+                ylab("yield") +
+                xlab("observation number") +
+                ggtitle("SS model = SS total - SS error") +
+                theme_classic()
+            return(linplot)
+        }
+    })
+
+    ssvalue <- reactive({
+        if(input$SS_source2 == "3"){
+            sstotal <- round(sum((mean(crop_growth$yield) - crop_growth$yield)^2),2)
+            return(paste("SS total ", sstotal, "\nMS total", round(sstotal/29,2)))
+        } else if(input$SS_source2 == "2"){
+            sserror <- round(sum((crop_growth_fitted - crop_growth$yield)^2),2)
+            return(paste("SSE error ", sserror, "\nMS error", round(sserror/27,2)))
+        } else {
+            sstotal <- round(sum((mean(crop_growth$yield) - crop_growth$yield)^2),2)
+            sserror <- round(sum((crop_growth_fitted - crop_growth$yield)^2),2)
+            ssmodel <- sstotal - sserror
+            return(paste("SS soil ", ssmodel, "\nMS soil", round(ssmodel/2,2)))
+        }
+    })
+
+    output$distPlot2 <- renderPlot({
+        p()
+    })
+    output$value2 <- renderText({
+        ssvalue()
+    })
+
+```
+
+**Remember**. The mean squares (MS) are the variances, which are calculated by
+dividing the _SS total_, _SS error_ and _SS soil_ by their degrees of freedom
+(29, 27 and 2 respectively). It is the **ratio** of the MS soil to MS error that
+is used to calculate the F-value. The larger the F-value, the bigger the effect
+of soil.
+
+**IF TIME, ADD INTERACTIVE TO CHANGE AMOUNT OF NOISE AROUND EACH LEVEL**
