@@ -8,8 +8,8 @@ runtime: shiny_prerendered
 library(learnr)
 library(mosaic)
 library(magrittr)
-caterpillers <- read.csv("../www/regression.csv")
-crop_growth  <- read.csv("../www/crop_growth.csv")
+caterpillers <- read.csv("www/regression.csv")
+crop_growth  <- read.csv("www/crop_growth.csv")
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -142,7 +142,7 @@ error = SS total.
 The following interactive chart allows you to visualise these different
 components.
 
-```{r, echo=FALSE}
+```{r caterpiller_shiny_ui, echo=FALSE}
 caterpillers_lm <- lm(growth ~ tannin, data=caterpillers)
 caterpillers_resid <- residuals(caterpillers_lm)
 caterpillers_fitted <- fitted(caterpillers_lm)
@@ -169,7 +169,7 @@ fluidPage(
 )
 ```
 
-```{r, context="server"}
+```{r caterpiller_shiny_server, context="server"}
     p <- reactive({
         if(input$SS_source == "3"){
             linplot <- ggplot(aes(x = tannin, y = growth), data = caterpillers) +
@@ -389,10 +389,7 @@ but it may be less obvious how the various components are calculated, especially
 $\mbox{SS total}$ and $\mbox{SS error}$. As before, we'll use an interactive to
 show three components. Note that as the explanatory variable is categorical, so
 that you can see the individual observations, they are simply shown in the order
-
-
-
-<!-- in the original dataset (i.e. row number): -->
+in the original dataset (i.e. row number):
 
 ```{r, echo=FALSE}
 crop_growth_lm <- lm(yield ~ soil, data=crop_growth)
@@ -421,7 +418,7 @@ fluidPage(
 ```
 
 ```{r, context="server"}
-    p <- reactive({
+    p2 <- reactive({
         if(input$SS_source2 == "3"){
             linplot <- ggplot(aes(x = 1:30, y = yield, colour = soil), data = crop_growth) +
                 geom_point() +
@@ -461,7 +458,7 @@ fluidPage(
         }
     })
 
-    ssvalue <- reactive({
+    ssvalue2 <- reactive({
         if(input$SS_source2 == "3"){
             sstotal <- round(sum((mean(crop_growth$yield) - crop_growth$yield)^2),2)
             return(paste("SS total ", sstotal, "\nMS total", round(sstotal/29,2)))
@@ -477,10 +474,10 @@ fluidPage(
     })
 
     output$distPlot2 <- renderPlot({
-        p()
+        p2()
     })
     output$value2 <- renderText({
-        ssvalue()
+        ssvalue2()
     })
 
 ```
