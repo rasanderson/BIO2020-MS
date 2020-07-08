@@ -10,6 +10,13 @@ library(mosaic)
 library(magrittr)
 caterpillers <- read.csv("www/regression.csv")
 crop_growth  <- read.csv("www/crop_growth.csv")
+caterpillers_lm <- lm(growth ~ tannin, data=caterpillers)
+caterpillers_resid <- residuals(caterpillers_lm)
+caterpillers_fitted <- fitted(caterpillers_lm)
+crop_growth_lm <- lm(yield ~ soil, data=crop_growth)
+crop_growth_resid <- residuals(crop_growth_lm)
+crop_growth_fitted <- fitted(crop_growth_lm)
+
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -142,10 +149,7 @@ error = SS total.
 The following interactive chart allows you to visualise these different
 components.
 
-```{r caterpiller_shiny_ui, echo=FALSE}
-caterpillers_lm <- lm(growth ~ tannin, data=caterpillers)
-caterpillers_resid <- residuals(caterpillers_lm)
-caterpillers_fitted <- fitted(caterpillers_lm)
+```{r, echo=FALSE}
 
 
 fluidPage(
@@ -169,7 +173,7 @@ fluidPage(
 )
 ```
 
-```{r caterpiller_shiny_server, context="server"}
+```{r, context="server"}
     p <- reactive({
         if(input$SS_source == "3"){
             linplot <- ggplot(aes(x = tannin, y = growth), data = caterpillers) +
@@ -392,9 +396,6 @@ that you can see the individual observations, they are simply shown in the order
 in the original dataset (i.e. row number):
 
 ```{r, echo=FALSE}
-crop_growth_lm <- lm(yield ~ soil, data=crop_growth)
-crop_growth_resid <- residuals(crop_growth_lm)
-crop_growth_fitted <- fitted(crop_growth_lm)
 
 fluidPage(
     # Application title
