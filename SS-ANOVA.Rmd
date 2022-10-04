@@ -590,4 +590,22 @@ output$anovatable3 <- renderPrint({
 ```
 
 
-To add: short quiz to check understanding
+```{r which_is_more_important}
+question("Which is more important in determining the statistical significance, here of the soil type on the yield, the variability in the data or the number of replicates",
+         answer("The number of replicates per treatment level (soil type) is most important",
+                message = "No. Mean Squares (MS or variance) is calculated by dividing the SS by
+                the degrees of freedom (df). In a categorical variable the number of
+                replicates is used to calculate df. But think how the SS is calculated!"),
+         answer("Both the variability in the data and the number of replicates are equally
+                important.",
+         correct = TRUE, message = "Good. In this example you can see that if there
+                are insufficient replicates per soil type, or too much noise in
+                the data, then it is not possible to detect a significant effect.
+                Noise in the data is represented through sums of squares (SS)
+                which is then corrected for the number of replicates (via degrees
+                of freedom or df) to calculate the mean square (MS variance). It is
+                the comparison of MS for your soil type, and MS from noise, that is
+                used to calculate the F-ratio. The larger the F-ratio for given
+                df the more significant the p-value."),
+         allow_retry = TRUE)
+```
